@@ -16,10 +16,42 @@ const TableComponent = () => {
       .then((dataBlocks: BlockData[]) => {
         console.log("dataBlocks", dataBlocks);
         setDataBlocks(dataBlocks);
+
+        // fetch transactions
+        dataBlocks.forEach((block) => {
+          const newTransactions = fetchTransactionsByLevel(block.level);
+        });
       })
       .catch((error: any) => {
         // Handle error
       });
+  };
+
+  const fetchTransactionsByLevel = (level: number) => {
+    apiService
+      .getTransactionsByLevel(level)
+      .then((transactions: number) => {
+        console.log("transactions", transactions);
+        // TODO - Update state here
+        updateTransactionsByLevel(level, transactions);
+      })
+      .catch((error: any) => {
+        // Handle error
+      });
+  };
+
+  const updateTransactionsByLevel = (level: number, transactions: number) => {
+    setDataBlocks((prevArray) => {
+      return prevArray.map((blockData) => {
+        if (blockData.level === level) {
+          return {
+            ...blockData,
+            transactions: transactions,
+          };
+        }
+        return blockData;
+      });
+    });
   };
 
   return (
@@ -35,9 +67,11 @@ const TableComponent = () => {
       <tbody>
         {dataBlocks.map((block) => (
           <tr key={block.level}>
-            <td>{block.level}</td>
+            <td>
+              <a href="">{block.level}</a>
+            </td>
             <td>{block.proposer?.alias}</td>
-            <td></td>
+            <td>{block.transactions}</td>
             <td>{block.timestamp}</td>
           </tr>
         ))}
