@@ -7,6 +7,18 @@ export interface BlockData {
   proposer?: Proposer
 }
 
+export interface Entity {
+  alias?: string;
+  address: string;
+}
+
+export interface TransactionsData {
+  sender: Entity;
+  target: Entity;
+  amount: number;
+  status: string;
+}
+
 interface Proposer {
   alias: string;
   address: string;
@@ -20,12 +32,10 @@ const apiService = {
         return response.data;
       })
       .catch((error) => {
-        // Handle error
         throw error;
       });
       
     },
-    // TODO - Add limit
     getBlocks: (): Promise<BlockData[]> => {
       return axios
         .get("https://api.tzkt.io/v1/blocks?limit=10&sort.desc=level&select=level,timestamp,proposer&level")
@@ -33,11 +43,21 @@ const apiService = {
           return response.data.map(({ level, timestamp, proposer }) => ({ level, timestamp, proposer }))
         })
         .catch((error) => {
-          // Handle error
           throw error;
         });
         
       },
+      getBlocksBelowGivenLevel: (level: number): Promise<BlockData[]> => {
+        return axios
+        .get(`https://api.tzkt.io/v1/blocks?limit=10&sort.desc=level&level.lt=${level}`)
+        .then((response: AxiosResponse<BlockData[]>) => {
+          return response.data.map(({ level, timestamp, proposer }) => ({ level, timestamp, proposer }))
+        })
+        .catch((error) => {
+          throw error;
+        });
+          
+        },
       getTransactionsByLevel: (level: number): Promise<number> => {
         return axios
           .get(`https://api.tzkt.io/v1/operations/transactions/count?level=${level}`)
@@ -45,14 +65,22 @@ const apiService = {
             return response.data
           })
           .catch((error) => {
-            // Handle error
             throw error;
           });
           
         },
+        getTransactionsDataByLevel: (level: number): Promise<TransactionsData[]> => {
+          return axios
+            .get(`https://api.tzkt.io/v1/operations/transactions?level.eq=${level}&select=sender,target,amount,status`)
+            .then((response: AxiosResponse<TransactionsData[]>) => {
+              return response.data.map(({ sender, target, amount, status }) => ({ sender, target, amount, status }))
+            })
+            .catch((error) => {
+              throw error;
+            });
+            
+          }
 
-
-  // Define other API methods here...
 };
 
 export default apiService;
